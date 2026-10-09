@@ -34,6 +34,9 @@ public class ChatClient {
                 String message;
                 try {
                     while ((message = in.readLine()) != null) {
+                        if (message.startsWith("SERVER_USERLIST:")) {
+                            continue; // internal protocol line, not meant to be displayed
+                        }
                         System.out.println(message);
                     }
                 } catch (IOException e) {

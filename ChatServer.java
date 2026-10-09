@@ -67,6 +67,17 @@ public class ChatServer {
                         : name.trim();
 
                 System.out.println(username + " connected from " + socket.getRemoteSocketAddress());
+
+                // Tell the new client who's already online (GUI clients use this to fill their list)
+                StringBuilder existing = new StringBuilder();
+                for (ClientHandler client : clients) {
+                    if (client != this && client.username != null) {
+                        if (existing.length() > 0) existing.append(",");
+                        existing.append(client.username);
+                    }
+                }
+                send("SERVER_USERLIST:" + existing);
+
                 broadcast("SERVER: " + username + " has joined the chat", null);
 
                 String line;
