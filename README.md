@@ -1,100 +1,128 @@
-# Real-Time Chat — Java Socket Programming
+# Real-Time Chat in Java
 
-A console-based multi-user chat system using Java Socket Programming and multithreading, built per the project proposal's Milestones 2–4.
+A multi-user chat system built with Java sockets and multithreading: one **server**, a **console client** and a **Swing GUI client**. Both clients speak the same protocol, so console and GUI users can chat together.
 
-## Roles & Devlopement:-
-Divyanshu walia - chat client (Connects to ChatServer, sends a username,and allow to chat)
-Mehul gupta - chat server (Accepts multiple client connections and broadcasts each message to every other connected client.)
-Manav Kaushik - built gui interface with live activity feed 
+## Roles and Development
 
-## Files
+### 1. Divyanshu Walia — Chat Client & Core Planning
+- Planned the project and studied how chat applications work.
+- Developed the console-based chat client.
+- Implemented support for multiple users through multithreading.
 
-- `ChatServer.java` — accepts multiple client connections, one thread per client, broadcasts messages to everyone else
-- `ChatClient.java` — console client: connects to the server, listens for incoming messages on a background thread while your typed messages go out on the main thread
-- `ChatClientGUI.java` — Swing GUI client: same protocol as the console client, with a chat window, a live join/leave activity feed, and a "coming soon" panel for upcoming features
+### 2. Mehul Gupta — Chat Server & Authentication
+- Developed the chat server using Java Socket Programming.
+- Implemented the login and registration system.
+- Added group chat and private messaging features.
 
+### 3. Manav Kaushik — GUI & User Interaction
+- Developed the graphical user interface (GUI) using Java Swing.
+- Implemented the online-user list and join/leave notifications.
+- Added chat history and file-sharing features.
+- Built the live activity feed to display user activity.
 
-## What it already does
+## Features
 
-- Multiple users can connect and chat at the same time (multithreading)
-- Usernames — each message is tagged with who sent it
-- Join / leave notifications ("SERVER: Alice has joined the chat")
-- Clean disconnect with the `quit` command
-- GUI client (`ChatClientGUI`) additionally has:
-  - A chat window with your own messages in blue, others' in black, system messages in italic gray
-  - A live **Activity** panel listing join/leave events with timestamps
-  - A **Coming soon** panel previewing features not built yet (private chat, timestamps in-chat, chat history, login, online status, file sharing, audio/video)
+| Feature | Status |
+|---|---|
+| Real-time group chat for many users at once (one server thread per user) | Done |
+| Timestamps on every message | Done |
+| Accounts: register and log in (passwords stored as salted hashes, never as text) | Done |
+| Private messages: `/msg name text`, or double-click a name in the GUI | Done |
+| Live **Online** list, plus join/leave notifications (chat and Activity panel) | Done |
+| Chat history: the newest 50 public messages are shown when you log in; all are saved to a file | Done |
+| File sharing up to 2 MB (button in the GUI, `/sendfile` in the console) | Done |
+| Audio & video calls | **Coming soon** |
+
 
 ## Requirements
 
-- JDK 8 or newer. Check with:
-  ```
-  java -version
-  javac -version
-  ```
+JDK 8 or newer (`java -version` and `javac -version` should both work). Written to compile as Java 8; tested with JDK 21.
 
-## How to compile
+## Compile
 
 ```
-javac ChatServer.java ChatClient.java ChatClientGUI.java
+javac *.java
 ```
 
-## How to run — same computer (quick test)
+## Run
 
-Open three terminals in this folder.
-
-**Terminal 1 — start the server:**
+**1. Start the server** (one computer):
 ```
 java ChatServer
 ```
-(starts on port 12345 by default; pass a different port as an argument if you like, e.g. `java ChatServer 5000`)
+It prints the addresses other devices can use to reach it. The default port is 12345 (`java ChatServer 5000` to change it).
 
-**Terminal 2 and 3 — start two clients:**
+**2. Start one or more clients**, either kind, in any mix:
 ```
-java ChatClient
+java ChatClientGUI                  (opens the login window)
+java ChatClient                     (console; asks login or register, username, password)
 ```
-Each will ask for a username, then anything you type gets sent to everyone else connected. Type `quit` to leave.
+The first time, choose **Create account** (GUI) or `r` (console). After that, log in with the same username and password. Usernames are 2-20 letters, numbers or underscores and are not case-sensitive; passwords are 4-64 characters.
 
-## How to run — GUI version
+To connect to a server on another computer, give its address (and port): `java ChatClientGUI 192.168.1.5 12345`, or `java ChatClient 192.168.1.5 12345`. In the GUI you can also just type it in the login window.
 
-Once compiled, start the server as above, then launch the GUI instead of the console client:
+## Using the chat
+
+| Do this | How |
+|---|---|
+| Message everyone | Type and press Enter |
+| Private message | `/msg Bob see you at 5`, or double-click Bob in the Online list (GUI) |
+| See who is online | The Online list (GUI) or `/users` (console) |
+| Share a file | **Attach file** button (GUI) or `/sendfile path/to/file` (console) |
+| Leave | Close the window, or type `/quit` |
+| List the commands | `/help` |
+
+Files you receive are saved automatically into a `received_files` folder next to the client, and never overwrite an existing file.
+
+## Using it on two or more devices (same Wi-Fi or phone hotspot)
+
+1. Run the server on one computer and note an address it prints, such as `192.168.1.5`.
+2. On every other device, start a client and connect to that address and port 12345.
+3. If a device can't connect, allow Java through the server computer's firewall (or allow incoming connections on port 12345).
+
+Devices on *different* networks can't reach a `192.168.x.x` address; that would need cloud hosting, port forwarding or a tunnelling tool.
+
+## Where things are saved
+
+| File / folder | Where | What |
+|---|---|---|
+| `users.txt` | Folder the server runs in | Accounts (username, salt, password hash) |
+| `chat_history.txt` | Folder the server runs in | Every public message |
+| `received_files/` | Folder each client runs in | Files other people shared with you |
+
+To reset everything, stop the server and delete `users.txt` and `chat_history.txt`.
+
+## How it fits together
 
 ```
-java ChatClientGUI
+ ChatClientGUI / ChatClient --> ChatConnection --> TCP socket --> ChatServer (one thread per client)
+                                                                    |-- UserStore   (users.txt)
+                                                                    '-- ChatHistory (chat_history.txt)
 ```
 
-It will pop up a small dialog asking for your username, then open the main chat window. You can also skip the dialog by passing the server address, port, and username directly — handy for testing or for quickly opening a few windows at once:
+Every message is one line of UTF-8 text such as `MSG|1760000000000|Alice|hello`. The full list of messages is in the comment at the top of `Protocol.java`.
 
-```
-java ChatClientGUI 192.168.1.5 12345 Alice
-```
+## Good to know
 
-## How to run — across multiple devices on the same Wi-Fi
+- **Passwords are hashed on the server, but travel over the network unencrypted** (no TLS). That is fine for a demo on your own Wi-Fi; encrypting the connection (`SSLSocket`) would be a natural future improvement.
+- **Private messages** go only to the recipient and are never saved or logged, but they are not end-to-end encrypted.
+- **Logging in again** with an account that is already online logs the old session out and takes over. This avoids being locked out after a laptop sleeps or Wi-Fi drops.
+- **If the server stops**, the GUI turns red and shows a **Reconnect** button; the console client exits with a message. Everyone has to log in again after a server restart.
+- **Shared files** go to everyone (not privately), up to 2 MB.
+- Only the newest 50 messages are replayed at login; older ones stay in `chat_history.txt`.
 
-This is the "Intermediate Architecture" from the proposal (multiple clients, one server) — no internet hosting needed, just the same Wi-Fi network.
+## Troubleshooting
 
-1. Pick one laptop to run the server on. Find its local IP address:
-   - Windows: `ipconfig` → look for "IPv4 Address"
-   - Mac/Linux: `ifconfig` or `ip addr` → look for something like `192.168.1.5`
-2. On that machine, run `java ChatServer`
-3. On every other device (same Wi-Fi), run:
-   ```
-   java ChatClient 192.168.1.5 12345
-   ```
-   using the server machine's actual IP address in place of `192.168.1.5`
-4. Make sure the server machine's firewall allows incoming connections on port 12345
+| Problem | Likely cause |
+|---|---|
+| "Could not connect ... Is the server running?" | Server not started, wrong address or port, or a firewall is blocking it |
+| "Port 12345 is already in use" | Another server is already running (close it, or use another port) |
+| "Invalid username or password" | Wrong details, or you haven't created the account yet |
+| Accents / other languages look wrong in the console | Your terminal's font or code page; the chat itself handles Unicode correctly |
 
-If a device is on a different network entirely (not the same Wi-Fi), local IPs won't reach it — that needs cloud hosting, port forwarding, or a tool like ngrok instead.
-
-## Next steps:-
-
-- **Milestone 5 — Testing**: try 3+ clients at once, disconnect one mid-conversation, send messages back-to-back
-- **Milestone 6 — Final improvements**, roughly in order of effort — these are exactly what's listed as "Coming soon" in the GUI:
-  1. Timestamps shown on each chat message (the activity feed already has them, the chat itself doesn't yet)
-  2. Private/direct messaging (`/msg username text`)
-  3. Chat history (log messages to a file, or a simple database)
-  4. User login / authentication
-  5. Online status (who's currently online, not just join/leave events)
-  6. File sharing
-  7. Audio/video calling (a much bigger jump — would use WebRTC rather than plain sockets)
-
+## Next steps:- (future ideas)
+1. Enhancing the gui for better expierience.
+2. currently user need to type "\msg" for the private chat going to remove that and make it like user is on the particular window of the another user with whom user 1 wants to talk.
+3. fixing minor bugs .
+4. quit a bit complex technology to be used to obtain audio and video call functionality and make it user friendly .
+  
