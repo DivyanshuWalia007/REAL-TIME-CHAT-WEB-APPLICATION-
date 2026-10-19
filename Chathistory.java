@@ -12,6 +12,7 @@ import java.util.List;
 /**
  * Public chat history. Every public message is appended to a file; the newest few are kept
  * in memory so they can be sent to people as they log in. Private messages are never saved.
+ * main problem is that after hosting it server restarts and the chat history is lost. This class is used to save the chat history to a file and load it back when the server restarts.
  */
 class ChatHistory {
     private final Path file;
