@@ -20,6 +20,7 @@ A multi-user chat system built with Java sockets and multithreading: one **serve
 - Added chat history and file-sharing features.
 - Built the live activity feed to display user activity.
 
+
 ## Features
 
 | Feature | Status |
