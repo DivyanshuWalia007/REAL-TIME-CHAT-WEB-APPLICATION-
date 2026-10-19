@@ -83,7 +83,7 @@ public class ChatClientGUI extends JFrame {
     private volatile boolean connected = true;
     private volatile boolean closing = false;
 
-    
+
     private JPanel header;
     private JLabel titleLabel;
     private JButton reconnectButton;
@@ -344,6 +344,7 @@ public class ChatClientGUI extends JFrame {
         String text = raw.trim();
         if (text.isEmpty() || !connected) {
             return;
+            
         }
         if (text.startsWith("/")) {
             runCommand(text);
