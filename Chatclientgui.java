@@ -344,7 +344,7 @@ public class ChatClientGUI extends JFrame {
         String text = raw.trim();
         if (text.isEmpty() || !connected) {
             return;
-            
+
         }
         if (text.startsWith("/")) {
             runCommand(text);
