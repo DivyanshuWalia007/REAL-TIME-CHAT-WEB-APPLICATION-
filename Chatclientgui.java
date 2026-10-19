@@ -79,9 +79,11 @@ public class ChatClientGUI extends JFrame {
         return t;
     });
 
+
     private volatile boolean connected = true;
     private volatile boolean closing = false;
 
+    
     private JPanel header;
     private JLabel titleLabel;
     private JButton reconnectButton;
