@@ -42,6 +42,7 @@ class ChatHistory {
 
     private void remember(String line) {
         recent.addLast(line);
+        
         while (recent.size() > keep) {
             recent.removeFirst();
         }
